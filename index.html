@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIRECT | MOBILE LINK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --deep-black: #000000;
+        }
+
+        body {
+            background-color: var(--deep-black);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Subtle animated background pulse */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(0, 243, 255, 0.05) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .mobile-container {
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 3rem;
+            letter-spacing: 10px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 50px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap {
+            position: relative;
+            margin-bottom: 35px;
+            text-align: left;
+        }
+
+        .input-wrap label {
+            display: block;
+            font-size: 0.6rem;
+            color: var(--neon-blue);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        .btn-link {
+            width: 100%;
+            background: var(--neon-blue);
+            color: black;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+
+        .btn-link:active {
+            transform: scale(0.96);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <div class="logo">D.I.R.E.C.T</div>
+        <div class="tagline">Mobile Satellite Link</div>
+
+        <div class="input-wrap">
+            <label>Serial Connection</label>
+            <input type="tel" id="simNum" placeholder="SIM ID" autocomplete="off">
+        </div>
+
+        <div class="input-wrap">
+            <label>Target Label</label>
+            <input type="text" id="targetName" placeholder="CHILD NAME" autocomplete="off">
+        </div>
+
+        <button class="btn-link" onclick="startTracking()">INITIALIZE</button>
+    </div>
+
+    <script>
+        function startTracking() {
+            const sim = document.getElementById('simNum').value;
+            const name = document.getElementById('targetName').value;
+            
+            if(sim && name) {
+                localStorage.setItem("trackedSim", sim);
+                localStorage.setItem("childName", name);
+                
+                // Add a small haptic feedback feel with animation
+                document.body.style.opacity = '0';
+                document.body.style.transition = '0.5s';
+                
+                setTimeout(() => {
+                    window.location.href = "home.html"; 
+                }, 500);
+            } else {
+                alert("ERROR: Required fields empty.");
+            }
+        }
+    </script>
+
+</body>
+</html>
