@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIRECT | SYSTEM ACTIVE</title>
+    <title>DIRECT | LOCKED PROTOCOL</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -47,17 +47,14 @@
             margin-bottom: 6px;
         }
 
-        /* X, Y, Z Grid */
         .coords-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             text-align: center;
             gap: 5px;
         }
-        .coord-item span { font-size: 0.9rem; }
         .coord-label { color: var(--neon-blue); font-size: 0.6rem; display: block; }
 
-        /* Meters and Steps */
         .split-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -66,13 +63,11 @@
             flex-shrink: 0;
         }
 
-        /* Pointer Needle */
         .needle-area {
             flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
         }
 
         .pointer {
@@ -85,7 +80,7 @@
             transition: transform 0.3s ease-out;
         }
 
-        /* Protocol Alert Box */
+        /* Fixed Protocol Styles */
         .protocol-box {
             border: 1px solid var(--disabled);
             background: rgba(255, 255, 255, 0.01);
@@ -93,8 +88,7 @@
         }
         .protocol-box.active {
             border-color: var(--danger-red);
-            background: rgba(255, 59, 59, 0.05);
-            box-shadow: 0 0 15px rgba(255, 59, 59, 0.1);
+            background: rgba(255, 59, 59, 0.08);
         }
 
         .controls {
@@ -103,23 +97,15 @@
             justify-content: space-between;
         }
 
-        input[type="number"] {
-            width: 80px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--disabled);
+        .fixed-val {
+            font-size: 1.5rem;
             color: var(--disabled);
-            font-family: 'Orbitron';
-            font-size: 1.2rem;
-            text-align: center;
-            border-radius: 6px;
-            outline: none;
-            padding: 5px;
+            font-weight: bold;
+            transition: 0.3s;
         }
-
-        input[type="number"].active {
-            border-color: var(--danger-red);
+        .fixed-val.active {
             color: var(--danger-red);
-            text-shadow: 0 0 5px var(--danger-red);
+            text-shadow: 0 0 10px var(--danger-red);
         }
 
         /* Toggle Switch */
@@ -142,11 +128,11 @@
 <div class="main-wrapper">
     <div class="box" style="text-align: center;">
         <div class="box-title">Tracking Subject</div>
-        <div id="uName" style="font-size: 1.2rem; letter-spacing: 2px;">...</div>
+        <div id="uName" style="font-size: 1.2rem;">...</div>
     </div>
 
     <div class="box">
-        <div class="box-title">Spatial Data Stream</div>
+        <div class="box-title">Spatial Data (X, Y, Z)</div>
         <div class="coords-grid">
             <div class="coord-item"><span class="coord-label">X</span><span id="outX">0.000</span></div>
             <div class="coord-item"><span class="coord-label">Y</span><span id="outY">0.000</span></div>
@@ -160,7 +146,7 @@
             <span style="font-size: 1.3rem;"><span id="displayM">0</span> m</span>
         </div>
         <div class="box" style="margin-bottom:0;">
-            <div class="box-title">Step Count</div>
+            <div class="box-title">Steps</div>
             <span style="font-size: 1.3rem;" id="displayS">0</span>
         </div>
     </div>
@@ -170,10 +156,10 @@
     </div>
 
     <div class="box protocol-box" id="pBox">
-        <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol</div>
+        <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol (Locked)</div>
         <div class="controls">
             <div>
-                <input type="number" id="pInput" value="20" min="0" oninput="if(this.value < 0) this.value = 0;" disabled>
+                <span id="lockVal" class="fixed-val">20</span>
                 <small id="pUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
             </div>
             <label class="switch">
@@ -185,51 +171,38 @@
 </div>
 
 <script>
-    // Load Name from Login Page
     document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
 
-    // Protocol Logic: Disable/Enable Input
     function handleProtocol() {
         const isOn = document.getElementById('pToggle').checked;
-        const input = document.getElementById('pInput');
         const box = document.getElementById('pBox');
         const label = document.getElementById('pLabel');
+        const val = document.getElementById('lockVal');
         const unit = document.getElementById('pUnit');
 
         if(isOn) {
-            input.disabled = false;
-            input.classList.add('active');
             box.classList.add('active');
+            val.classList.add('active');
             label.style.color = "var(--danger-red)";
             unit.style.color = "var(--danger-red)";
         } else {
-            input.disabled = true;
-            input.classList.remove('active');
             box.classList.remove('active');
+            val.classList.remove('active');
             label.style.color = "var(--disabled)";
             unit.style.color = "var(--disabled)";
         }
     }
 
-    // Pointer & Data Simulation (Mocking ESP32 behavior)
+    // Pointer & Data Simulation
     const needle = document.getElementById('ptr');
-    let mockDistance = 20;
-
     setInterval(() => {
-        // Randomly jitter the needle to simulate live data
-        let rotation = Math.random() * 360; 
-        needle.style.transform = `rotate(${rotation}deg)`;
-
-        // Update Distance and Auto-calculate steps
-        mockDistance = (Math.random() * 50).toFixed(1);
-        document.getElementById('displayM').innerText = mockDistance;
-        document.getElementById('displayS').innerText = Math.round(mockDistance / 0.75);
-
-        // Update X, Y, Z Mock Values
-        document.getElementById('outX').innerText = (13.0 + Math.random()).toFixed(4);
-        document.getElementById('outY').innerText = (80.2 + Math.random()).toFixed(4);
-        document.getElementById('outZ').innerText = (Math.random() * 5).toFixed(1) + "m";
-        
+        needle.style.transform = `rotate(${Math.random() * 360}deg)`;
+        let d = (Math.random() * 50).toFixed(1);
+        document.getElementById('displayM').innerText = d;
+        document.getElementById('displayS').innerText = Math.round(d / 0.75);
+        document.getElementById('outX').innerText = (13.08 + Math.random()/100).toFixed(4);
+        document.getElementById('outY').innerText = (80.27 + Math.random()/100).toFixed(4);
+        document.getElementById('outZ').innerText = (Math.random() * 3).toFixed(1) + "m";
     }, 2000);
 </script>
 
