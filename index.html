@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIRECT | 3D TRACE</title>
+    <title>DIRECT | FIXED UI</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,21 +12,31 @@
             --danger-red: #ff3b3b;
         }
 
-        body {
+        /* Prevent the whole page from bouncing or scrolling away */
+        html, body {
             background-color: var(--deep-black);
-            color: white;
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            overflow: hidden; 
             font-family: 'Orbitron', sans-serif;
-            margin: 0; padding: 10px;
-            display: flex; flex-direction: column;
-            height: 100vh; box-sizing: border-box;
-            overflow: hidden;
+            color: white;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh; /* Use Dynamic Viewport Height for mobile */
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         .box {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(0, 243, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px; margin-bottom: 8px;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            flex-shrink: 0; /* Prevents boxes from squishing */
         }
 
         .box-title {
@@ -37,106 +47,113 @@
             margin-bottom: 4px;
         }
 
-        /* X, Y, Z Coordinate Layout */
         .coords-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
             text-align: center;
         }
-        .coord-label { color: var(--neon-blue); font-size: 0.7rem; }
-        .coord-val { font-size: 1rem; display: block; }
 
-        /* Needle with Pointer */
+        /* The Visual Area - This will shrink if the screen is small */
         .needle-area {
-            flex-grow: 1;
+            flex-grow: 1; 
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            min-height: 150px;
             position: relative;
         }
 
         .needle-container {
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* The Pointer Needle */
         .needle-pointer {
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 100px solid var(--neon-blue); /* The "Pointer" part */
+            width: 0; height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 70px solid var(--neon-blue);
             position: absolute;
-            bottom: 50%; /* Pivot point is at the center of the area */
+            bottom: 50%;
             transform-origin: bottom center;
-            filter: drop-shadow(0 0 10px var(--neon-blue));
-            transition: transform 0.2s ease-out;
+            filter: drop-shadow(0 0 8px var(--neon-blue));
         }
 
-        /* Center Hub */
         .needle-hub {
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            z-index: 2;
-            box-shadow: 0 0 10px white;
+            width: 8px; height: 8px;
+            background: white; border-radius: 50%;
+            z-index: 2; box-shadow: 0 0 8px white;
         }
 
-        /* Protocol Alert Controls */
-        .protocol-box { border-color: var(--danger-red); background: rgba(255, 59, 59, 0.03); }
-        .protocol-box .box-title { color: var(--danger-red); }
-        .protocol-controls { display: flex; align-items: center; justify-content: space-between; }
+        /* Protocol Box - FIXED at the bottom */
+        .protocol-box {
+            border: 1px solid var(--danger-red);
+            background: rgba(255, 59, 59, 0.05);
+            margin-bottom: 5px; /* Stay above the safe area */
+        }
+
+        .protocol-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 5px;
+        }
+
         .protocol-input {
-            width: 60px; background: transparent; border: 1px solid var(--danger-red);
-            color: var(--danger-red); font-family: 'Orbitron'; font-size: 1.1rem;
-            text-align: center; border-radius: 4px; outline: none;
+            width: 50px;
+            background: transparent;
+            border: 1px solid var(--danger-red);
+            color: var(--danger-red);
+            font-family: 'Orbitron';
+            font-size: 1rem;
+            text-align: center;
+            border-radius: 4px;
         }
 
-        /* Switch UI */
-        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        /* Mobile Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #222; transition: .4s; border-radius: 20px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 16px; width: 16px;
+            position: absolute; content: ""; height: 14px; width: 14px;
             left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
         }
-        input:checked + .slider { background-color: var(--danger-red); box-shadow: 0 0 10px var(--danger-red); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        input:checked + .slider { background-color: var(--danger-red); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
     </style>
 </head>
 <body>
 
+<div class="main-wrapper">
     <div class="box" style="text-align:center;">
-        <div class="box-title">Tracking Active</div>
-        <div id="targetName" style="font-size: 1.4rem; text-shadow: 0 0 10px var(--neon-blue);">...</div>
+        <div class="box-title">Subject Trace</div>
+        <div id="targetName" style="color:white; font-size: 1.1rem;">TARGET_ALPHA</div>
     </div>
 
     <div class="box">
-        <div class="box-title">Spatial Telemetry</div>
+        <div class="box-title">Spatial Data</div>
         <div class="coords-grid">
-            <div><span class="coord-label">X (LAT)</span><span class="coord-val" id="valX">0.0000</span></div>
-            <div><span class="coord-label">Y (LNG)</span><span class="coord-val" id="valY">0.0000</span></div>
-            <div><span class="coord-label">Z (ALT)</span><span class="coord-val" id="valZ">0.0 m</span></div>
+            <div><span style="color:var(--neon-blue); font-size:0.6rem;">X</span><br><span id="x">0.00</span></div>
+            <div><span style="color:var(--neon-blue); font-size:0.6rem;">Y</span><br><span id="y">0.00</span></div>
+            <div><span style="color:var(--neon-blue); font-size:0.6rem;">Z</span><br><span id="z">0.0m</span></div>
         </div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <div class="box"><div class="box-title">Distance</div><div id="mDist">0 m</div></div>
-        <div class="box"><div class="box-title">Steps</div><div id="sCount">0</div></div>
+        <div class="box"><div class="box-title">Dist</div><span id="d">0 m</span></div>
+        <div class="box"><div class="box-title">Steps</div><span id="s">0</span></div>
     </div>
 
     <div class="needle-area">
-        <div class="box-title" style="position:absolute; top: 20px;">Directional Vector</div>
         <div class="needle-container">
             <div id="ptr" class="needle-pointer"></div>
             <div class="needle-hub"></div>
@@ -144,31 +161,29 @@
     </div>
 
     <div class="box protocol-box">
-        <div class="box-title">Distance Protocol (20m Default)</div>
+        <div class="box-title" style="color:var(--danger-red);">Distance Protocol</div>
         <div class="protocol-controls">
             <div>
-                <input type="number" id="alertMeters" class="protocol-input" value="20">
-                <span style="font-size: 0.7rem; color: var(--danger-red);"> METERS</span>
+                <input type="number" id="alertM" class="protocol-input" value="20">
+                <span style="font-size: 0.6rem; color: var(--danger-red);"> MTR</span>
             </div>
             <label class="switch">
-                <input type="checkbox" id="dongleSwitch">
+                <input type="checkbox" id="toggle">
                 <span class="slider"></span>
             </label>
         </div>
     </div>
+</div>
 
-    <script>
-        // Load data from login
-        document.getElementById('targetName').innerText = localStorage.getItem("childName") || "TARGET_ALPHA";
+<script>
+    // Just a bit of movement to show it's working
+    const ptr = document.getElementById('ptr');
+    let r = 0;
+    setInterval(() => {
+        r += 1;
+        ptr.style.transform = `rotate(${r}deg)`;
+    }, 50);
+</script>
 
-        // Needle Logic
-        const ptr = document.getElementById('ptr');
-        let angle = 0;
-        
-        // Mocking live data rotation
-        setInterval(() => {
-            angle += (Math.random() * 10 - 5); // Simulate slight jitter
-            ptr.style.transform = `rotate(${angle}deg)`;
-        }, 200);
-    </script>
 </body>
+</html>
