@@ -1,25 +1,183 @@
-<div class="box protocol-box" id="pContainer">
-    <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol</div>
-    <div class="controls">
-        <div>
-            <input type="number" id="mInput" value="20" min="0" disabled oninput="checkNegative(this)">
-            <small id="mUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIRECT | SYSTEM ACTIVE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --deep-black: #000000;
+            --danger-red: #ff3b3b;
+            --disabled: #444;
+        }
+
+        html, body {
+            background-color: var(--deep-black);
+            margin: 0; padding: 0;
+            height: 100dvh; width: 100%;
+            overflow: hidden; 
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* Box Styling */
+        .box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            flex-shrink: 0; /* Ensures these don't disappear */
+        }
+
+        .box-title {
+            color: var(--neon-blue);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .val-large { font-size: 1.2rem; display: block; }
+
+        /* Split Row for Meters and Steps */
+        .split-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Visual Needle Area */
+        .needle-area {
+            flex-grow: 1; /* This takes up the remaining middle space */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .pointer {
+            width: 0; height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 90px solid var(--neon-blue);
+            filter: drop-shadow(0 0 10px var(--neon-blue));
+            transform-origin: bottom center;
+            transition: transform 0.3s ease-out;
+        }
+
+        /* Protocol Section */
+        .protocol-box {
+            border: 1px solid var(--disabled);
+            background: rgba(255, 255, 255, 0.01);
+            transition: 0.3s;
+        }
+        .protocol-box.active {
+            border-color: var(--danger-red);
+            background: rgba(255, 59, 59, 0.05);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            background: black;
+            border: 1px solid var(--disabled);
+            color: var(--disabled);
+            font-family: 'Orbitron';
+            font-size: 1.1rem;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        input[type="number"].active {
+            border-color: var(--danger-red);
+            color: var(--danger-red);
+        }
+
+        /* Toggle Switch */
+        .switch { position: relative; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px;
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--danger-red); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="box" style="text-align: center;">
+        <div class="box-title">Subject Identity</div>
+        <div id="uName" style="font-size: 1.3rem;">TARGET_01</div>
+    </div>
+
+    <div class="box">
+        <div class="box-title">Spatial Telemetry (X, Y, Z)</div>
+        <div style="display: flex; justify-content: space-around; text-align: center;">
+            <div><small style="color:var(--neon-blue)">X</small><br><span id="outX">0.00</span></div>
+            <div><small style="color:var(--neon-blue)">Y</small><br><span id="outY">0.00</span></div>
+            <div><small style="color:var(--neon-blue)">Z</small><br><span id="outZ">0.0m</span></div>
         </div>
-        <label class="switch">
-            <input type="checkbox" id="pSwitch" onchange="updateProtocol()">
-            <span class="slider"></span>
-        </label>
+    </div>
+
+    <div class="split-row">
+        <div class="box" style="margin-bottom:0;">
+            <div class="box-title">Distance</div>
+            <span class="val-large"><span id="displayMeters">25</span> m</span>
+        </div>
+        <div class="box" style="margin-bottom:0;">
+            <div class="box-title">Step Count</div>
+            <span class="val-large" id="displaySteps">33</span>
+        </div>
+    </div>
+
+    <div class="needle-area">
+        <div id="mainPointer" class="pointer"></div>
+    </div>
+
+    <div class="box protocol-box" id="pContainer">
+        <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol</div>
+        <div class="controls">
+            <div>
+                <input type="number" id="mInput" value="20" disabled>
+                <small id="mUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="pSwitch" onchange="updateProtocol()">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- FIX: Prevent Minus Points ---
-    function checkNegative(input) {
-        if (input.value < 0) {
-            input.value = 0; // Force it to 0 if they try to go lower
-        }
-    }
+    // 1. Sync User Name
+    document.getElementById('uName').innerText = localStorage.getItem("childName") || "DIRECT_USER";
 
+    // 2. Protocol Toggle Function
     function updateProtocol() {
         const active = document.getElementById('pSwitch').checked;
         const input = document.getElementById('mInput');
@@ -39,26 +197,24 @@
             container.classList.remove('active');
             label.style.color = "var(--disabled)";
             unit.style.color = "var(--disabled)";
-            
-            // Optional: Reset to default if turned off
-            if(input.value < 0) input.value = 20; 
         }
     }
 
-    // --- YOUR GPS ALERT LOGIC ---
-    // This part runs in your main loop to check for the alert
+    // 3. Pointer & Data Simulation
+    const ptr = document.getElementById('mainPointer');
+    let angle = 0;
+    
     setInterval(() => {
-        let currentDist = 25; // Example real-time distance
-        let alertLimit = document.getElementById('mInput').value;
-        let isProtocolOn = document.getElementById('pSwitch').checked;
-
-        // If Protocol is ON and tracker is further than the limit
-        if (isProtocolOn && currentDist > alertLimit) {
-            // Trigger a visual alert (Screen flashes Red)
-            document.body.style.backgroundColor = "#200"; 
-            console.log("ALERT: Out of Range!");
-        } else {
-            document.body.style.backgroundColor = "black";
-        }
-    }, 1000);
+        // Simulating receiving data
+        angle += (Math.random() * 6 - 3); 
+        ptr.style.transform = `rotate(${angle}deg)`;
+        
+        // Example logic: Update distance and calculate steps (0.75m per step)
+        let currentDist = 25; // This will come from your GPS math later
+        document.getElementById('displayMeters').innerText = currentDist;
+        document.getElementById('displaySteps').innerText = Math.round(currentDist / 0.75);
+    }, 500);
 </script>
+
+</body>
+</html>
