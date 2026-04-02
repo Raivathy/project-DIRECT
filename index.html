@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIRECT | FIXED UI</title>
+    <title>DIRECT | PROTOCOL LOCK</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon-blue: #00f3ff;
             --deep-black: #000000;
             --danger-red: #ff3b3b;
+            --disabled-grey: #444;
         }
 
-        /* Prevent the whole page from bouncing or scrolling away */
         html, body {
             background-color: var(--deep-black);
             margin: 0; padding: 0;
@@ -25,7 +25,7 @@
         .main-wrapper {
             display: flex;
             flex-direction: column;
-            height: 100dvh; /* Use Dynamic Viewport Height for mobile */
+            height: 100dvh;
             padding: 10px;
             box-sizing: border-box;
         }
@@ -36,7 +36,7 @@
             border-radius: 10px;
             padding: 10px;
             margin-bottom: 8px;
-            flex-shrink: 0; /* Prevents boxes from squishing */
+            flex-shrink: 0;
         }
 
         .box-title {
@@ -53,24 +53,18 @@
             text-align: center;
         }
 
-        /* The Visual Area - This will shrink if the screen is small */
         .needle-area {
             flex-grow: 1; 
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 150px;
-            position: relative;
         }
 
         .needle-container {
-            width: 150px;
-            height: 150px;
+            width: 150px; height: 150px;
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
 
         .needle-pointer {
@@ -82,19 +76,21 @@
             bottom: 50%;
             transform-origin: bottom center;
             filter: drop-shadow(0 0 8px var(--neon-blue));
+            transition: transform 0.2s ease-out;
         }
 
-        .needle-hub {
-            width: 8px; height: 8px;
-            background: white; border-radius: 50%;
-            z-index: 2; box-shadow: 0 0 8px white;
-        }
-
-        /* Protocol Box - FIXED at the bottom */
+        /* --- Protocol Section Styles --- */
         .protocol-box {
-            border: 1px solid var(--danger-red);
+            border: 1px solid var(--disabled-grey);
+            background: rgba(255, 255, 255, 0.01);
+            transition: 0.4s ease;
+        }
+
+        /* Style when active */
+        .protocol-box.active {
+            border-color: var(--danger-red);
             background: rgba(255, 59, 59, 0.05);
-            margin-bottom: 5px; /* Stay above the safe area */
+            box-shadow: 0 0 10px rgba(255, 59, 59, 0.1);
         }
 
         .protocol-controls {
@@ -105,29 +101,38 @@
         }
 
         .protocol-input {
-            width: 50px;
-            background: transparent;
-            border: 1px solid var(--danger-red);
-            color: var(--danger-red);
+            width: 60px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--disabled-grey);
+            color: var(--disabled-grey);
             font-family: 'Orbitron';
             font-size: 1rem;
             text-align: center;
             border-radius: 4px;
+            outline: none;
+            transition: 0.3s;
         }
 
-        /* Mobile Switch */
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        /* Input style when active */
+        .protocol-input.active {
+            border-color: var(--danger-red);
+            color: var(--danger-red);
+            box-shadow: 0 0 5px var(--danger-red);
+        }
+
+        /* Switch UI */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #222; transition: .4s; border-radius: 20px;
+            background-color: #333; transition: .4s; border-radius: 20px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 14px; width: 14px;
+            position: absolute; content: ""; height: 16px; width: 16px;
             left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: var(--danger-red); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
     </style>
 </head>
@@ -135,40 +140,34 @@
 
 <div class="main-wrapper">
     <div class="box" style="text-align:center;">
-        <div class="box-title">Subject Trace</div>
-        <div id="targetName" style="color:white; font-size: 1.1rem;">TARGET_ALPHA</div>
+        <div class="box-title">Subject ID</div>
+        <div id="targetName">TARGET_ALPHA</div>
     </div>
 
     <div class="box">
-        <div class="box-title">Spatial Data</div>
+        <div class="box-title">Spatial Data (X, Y, Z)</div>
         <div class="coords-grid">
-            <div><span style="color:var(--neon-blue); font-size:0.6rem;">X</span><br><span id="x">0.00</span></div>
-            <div><span style="color:var(--neon-blue); font-size:0.6rem;">Y</span><br><span id="y">0.00</span></div>
-            <div><span style="color:var(--neon-blue); font-size:0.6rem;">Z</span><br><span id="z">0.0m</span></div>
+            <div><span style="color:var(--neon-blue); font-size:0.6rem;">X</span><br><span>0.00</span></div>
+            <div><span style="color:var(--neon-blue); font-size:0.6rem;">Y</span><br><span>0.00</span></div>
+            <div><span style="color:var(--neon-blue); font-size:0.6rem;">Z</span><br><span>0.0m</span></div>
         </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <div class="box"><div class="box-title">Dist</div><span id="d">0 m</span></div>
-        <div class="box"><div class="box-title">Steps</div><span id="s">0</span></div>
     </div>
 
     <div class="needle-area">
         <div class="needle-container">
             <div id="ptr" class="needle-pointer"></div>
-            <div class="needle-hub"></div>
         </div>
     </div>
 
-    <div class="box protocol-box">
-        <div class="box-title" style="color:var(--danger-red);">Distance Protocol</div>
+    <div class="box protocol-box" id="pBox">
+        <div class="box-title" id="pTitle" style="color:var(--disabled-grey);">Protocol Alpha</div>
         <div class="protocol-controls">
             <div>
-                <input type="number" id="alertM" class="protocol-input" value="20">
-                <span style="font-size: 0.6rem; color: var(--danger-red);"> MTR</span>
+                <input type="number" id="alertM" class="protocol-input" value="20" disabled>
+                <span id="pUnit" style="font-size: 0.6rem; color: var(--disabled-grey);"> MTR</span>
             </div>
             <label class="switch">
-                <input type="checkbox" id="toggle">
+                <input type="checkbox" id="toggleProtocol" onchange="toggleProtocolState()">
                 <span class="slider"></span>
             </label>
         </div>
@@ -176,13 +175,34 @@
 </div>
 
 <script>
-    // Just a bit of movement to show it's working
+    function toggleProtocolState() {
+        const isChecked = document.getElementById('toggleProtocol').checked;
+        const input = document.getElementById('alertM');
+        const box = document.getElementById('pBox');
+        const title = document.getElementById('pTitle');
+        const unit = document.getElementById('pUnit');
+
+        if (isChecked) {
+            // Enable State
+            input.disabled = false;
+            input.classList.add('active');
+            box.classList.add('active');
+            title.style.color = "var(--danger-red)";
+            unit.style.color = "var(--danger-red)";
+        } else {
+            // Disable State
+            input.disabled = true;
+            input.classList.remove('active');
+            box.classList.remove('active');
+            title.style.color = "var(--disabled-grey)";
+            unit.style.color = "var(--disabled-grey)";
+        }
+    }
+
+    // Small animation for needle
     const ptr = document.getElementById('ptr');
     let r = 0;
-    setInterval(() => {
-        r += 1;
-        ptr.style.transform = `rotate(${r}deg)`;
-    }, 50);
+    setInterval(() => { r += 1; ptr.style.transform = `rotate(${r}deg)`; }, 50);
 </script>
 
 </body>
