@@ -30,14 +30,13 @@
             box-sizing: border-box;
         }
 
-        /* Box Styling */
         .box {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(0, 243, 255, 0.1);
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 10px;
-            flex-shrink: 0; /* Ensures these don't disappear */
+            flex-shrink: 0;
         }
 
         .box-title {
@@ -48,9 +47,17 @@
             margin-bottom: 6px;
         }
 
-        .val-large { font-size: 1.2rem; display: block; }
+        /* X, Y, Z Grid */
+        .coords-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            text-align: center;
+            gap: 5px;
+        }
+        .coord-item span { font-size: 0.9rem; }
+        .coord-label { color: var(--neon-blue); font-size: 0.6rem; display: block; }
 
-        /* Split Row for Meters and Steps */
+        /* Meters and Steps */
         .split-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -59,9 +66,9 @@
             flex-shrink: 0;
         }
 
-        /* Visual Needle Area */
+        /* Pointer Needle */
         .needle-area {
-            flex-grow: 1; /* This takes up the remaining middle space */
+            flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -70,23 +77,24 @@
 
         .pointer {
             width: 0; height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 90px solid var(--neon-blue);
-            filter: drop-shadow(0 0 10px var(--neon-blue));
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 100px solid var(--neon-blue);
+            filter: drop-shadow(0 0 12px var(--neon-blue));
             transform-origin: bottom center;
             transition: transform 0.3s ease-out;
         }
 
-        /* Protocol Section */
+        /* Protocol Alert Box */
         .protocol-box {
             border: 1px solid var(--disabled);
             background: rgba(255, 255, 255, 0.01);
-            transition: 0.3s;
+            transition: 0.3s ease;
         }
         .protocol-box.active {
             border-color: var(--danger-red);
             background: rgba(255, 59, 59, 0.05);
+            box-shadow: 0 0 15px rgba(255, 59, 59, 0.1);
         }
 
         .controls {
@@ -96,77 +104,80 @@
         }
 
         input[type="number"] {
-            width: 70px;
-            background: black;
+            width: 80px;
+            background: rgba(0,0,0,0.5);
             border: 1px solid var(--disabled);
             color: var(--disabled);
             font-family: 'Orbitron';
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             text-align: center;
-            border-radius: 5px;
+            border-radius: 6px;
+            outline: none;
+            padding: 5px;
         }
 
         input[type="number"].active {
             border-color: var(--danger-red);
             color: var(--danger-red);
+            text-shadow: 0 0 5px var(--danger-red);
         }
 
         /* Toggle Switch */
-        .switch { position: relative; width: 44px; height: 22px; }
+        .switch { position: relative; width: 48px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333; transition: .4s; border-radius: 20px;
+            background-color: #222; transition: .4s; border-radius: 20px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 16px; width: 16px;
+            position: absolute; content: ""; height: 18px; width: 18px;
             left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: var(--danger-red); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        input:checked + .slider:before { transform: translateX(24px); }
     </style>
 </head>
 <body>
 
 <div class="main-wrapper">
     <div class="box" style="text-align: center;">
-        <div class="box-title">Subject Identity</div>
-        <div id="uName" style="font-size: 1.3rem;">TARGET_01</div>
+        <div class="box-title">Tracking Subject</div>
+        <div id="uName" style="font-size: 1.2rem; letter-spacing: 2px;">...</div>
     </div>
 
     <div class="box">
-        <div class="box-title">Spatial Telemetry (X, Y, Z)</div>
-        <div style="display: flex; justify-content: space-around; text-align: center;">
-            <div><small style="color:var(--neon-blue)">X</small><br><span id="outX">0.00</span></div>
-            <div><small style="color:var(--neon-blue)">Y</small><br><span id="outY">0.00</span></div>
-            <div><small style="color:var(--neon-blue)">Z</small><br><span id="outZ">0.0m</span></div>
+        <div class="box-title">Spatial Data Stream</div>
+        <div class="coords-grid">
+            <div class="coord-item"><span class="coord-label">X</span><span id="outX">0.000</span></div>
+            <div class="coord-item"><span class="coord-label">Y</span><span id="outY">0.000</span></div>
+            <div class="coord-item"><span class="coord-label">Z</span><span id="outZ">0.0m</span></div>
         </div>
     </div>
 
     <div class="split-row">
         <div class="box" style="margin-bottom:0;">
             <div class="box-title">Distance</div>
-            <span class="val-large"><span id="displayMeters">25</span> m</span>
+            <span style="font-size: 1.3rem;"><span id="displayM">0</span> m</span>
         </div>
         <div class="box" style="margin-bottom:0;">
             <div class="box-title">Step Count</div>
-            <span class="val-large" id="displaySteps">33</span>
+            <span style="font-size: 1.3rem;" id="displayS">0</span>
         </div>
     </div>
 
     <div class="needle-area">
-        <div id="mainPointer" class="pointer"></div>
+        <div id="ptr" class="pointer"></div>
     </div>
 
-    <div class="box protocol-box" id="pContainer">
+    <div class="box protocol-box" id="pBox">
         <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol</div>
         <div class="controls">
             <div>
-                <input type="number" id="mInput" value="20" disabled>
-                <small id="mUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
+                <input type="number" id="pInput" value="20" min="0" oninput="if(this.value < 0) this.value = 0;" disabled>
+                <small id="pUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
             </div>
             <label class="switch">
-                <input type="checkbox" id="pSwitch" onchange="updateProtocol()">
+                <input type="checkbox" id="pToggle" onchange="handleProtocol()">
                 <span class="slider"></span>
             </label>
         </div>
@@ -174,46 +185,52 @@
 </div>
 
 <script>
-    // 1. Sync User Name
-    document.getElementById('uName').innerText = localStorage.getItem("childName") || "DIRECT_USER";
+    // Load Name from Login Page
+    document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
 
-    // 2. Protocol Toggle Function
-    function updateProtocol() {
-        const active = document.getElementById('pSwitch').checked;
-        const input = document.getElementById('mInput');
-        const container = document.getElementById('pContainer');
+    // Protocol Logic: Disable/Enable Input
+    function handleProtocol() {
+        const isOn = document.getElementById('pToggle').checked;
+        const input = document.getElementById('pInput');
+        const box = document.getElementById('pBox');
         const label = document.getElementById('pLabel');
-        const unit = document.getElementById('mUnit');
+        const unit = document.getElementById('pUnit');
 
-        if(active) {
+        if(isOn) {
             input.disabled = false;
             input.classList.add('active');
-            container.classList.add('active');
+            box.classList.add('active');
             label.style.color = "var(--danger-red)";
             unit.style.color = "var(--danger-red)";
         } else {
             input.disabled = true;
             input.classList.remove('active');
-            container.classList.remove('active');
+            box.classList.remove('active');
             label.style.color = "var(--disabled)";
             unit.style.color = "var(--disabled)";
         }
     }
 
-    // 3. Pointer & Data Simulation
-    const ptr = document.getElementById('mainPointer');
-    let angle = 0;
-    
+    // Pointer & Data Simulation (Mocking ESP32 behavior)
+    const needle = document.getElementById('ptr');
+    let mockDistance = 20;
+
     setInterval(() => {
-        // Simulating receiving data
-        angle += (Math.random() * 6 - 3); 
-        ptr.style.transform = `rotate(${angle}deg)`;
+        // Randomly jitter the needle to simulate live data
+        let rotation = Math.random() * 360; 
+        needle.style.transform = `rotate(${rotation}deg)`;
+
+        // Update Distance and Auto-calculate steps
+        mockDistance = (Math.random() * 50).toFixed(1);
+        document.getElementById('displayM').innerText = mockDistance;
+        document.getElementById('displayS').innerText = Math.round(mockDistance / 0.75);
+
+        // Update X, Y, Z Mock Values
+        document.getElementById('outX').innerText = (13.0 + Math.random()).toFixed(4);
+        document.getElementById('outY').innerText = (80.2 + Math.random()).toFixed(4);
+        document.getElementById('outZ').innerText = (Math.random() * 5).toFixed(1) + "m";
         
-        // Example logic: Update distance and calculate steps (0.75m per step)
-        let currentDist = 25; // This will come from your GPS math later
-        document.getElementById('displayMeters').innerText = currentDist;
-        document.getElementById('displaySteps').innerText = Math.round(currentDist / 0.75);
-    }, 500);
+    }, 2000);
 </script>
 
 </body>
